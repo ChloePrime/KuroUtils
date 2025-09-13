@@ -10,11 +10,24 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+/**
+ * Context of an RPC call.
+ */
 public class RPCContext {
+    /**
+     * Get the caller of the RPC call.
+     *
+     * @return the caller of the RPC call.
+     */
     public static Endpoint getSender() {
         return Objects.requireNonNull(RpcCallMethodPacket.CONTEXT.get().peek(), "RPCContext.getSender() can only be called in an RPC method!");
     }
 
+    /**
+     * Get the caller of the RPC call as a server player.
+     *
+     * @return the caller of the RPC call, {@code null} if this call is called from the server.
+     */
     @Nullable
     public static ServerPlayer getSenderPlayer() {
         var sender = getSender();
