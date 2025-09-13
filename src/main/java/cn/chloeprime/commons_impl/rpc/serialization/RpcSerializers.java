@@ -6,7 +6,7 @@ import cn.chloeprime.commons_impl.rpc.RpcSupport;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.*;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
@@ -22,6 +22,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.common.extensions.IFriendlyByteBufExtension;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.math.BigDecimal;
@@ -43,7 +44,7 @@ public class RpcSerializers {
 
     // Java
     public static final RpcParameterSerializer<Boolean>     BOOL        = of(boolean.class, ByteBuf::writeBoolean, ByteBuf::readBoolean);
-    public static final RpcParameterSerializer<Byte>        BYTE        = of(byte.class, (buf, b) -> buf.writeByte(b), ByteBuf::readByte);
+    public static final RpcParameterSerializer<Byte>        BYTE        = of(byte.class, IFriendlyByteBufExtension::writeByte, ByteBuf::readByte);
     public static final RpcParameterSerializer<Short>       SHORT       = of(short.class, (buf, s) -> buf.writeShort(s), ByteBuf::readShort);
     public static final RpcParameterSerializer<Character>   CHAR        = of(char.class, (buf, c) -> buf.writeChar(c), ByteBuf::readChar);
     public static final RpcParameterSerializer<Integer>     INT         = of(int.class, FriendlyByteBuf::writeVarInt, FriendlyByteBuf::readVarInt);
@@ -64,7 +65,7 @@ public class RpcSerializers {
     public static final RpcParameterSerializer<Vec3>        VECTOR_3    = of(Vec3.class, RpcSerializers::writeVec3, RpcSerializers::readVec3);
     public static final RpcParameterSerializer<Vec3i>       VECTOR_3I   = of(Vec3i.class, RpcSerializers::writeVec3i, RpcSerializers::readVec3i);
     public static final RpcParameterSerializer<BlockPos>    BLOCK_POS   = VECTOR_3I.transform(BlockPos.class, BlockPos::new, bp -> bp);
-    public static final RpcParameterSerializer<CompoundTag> NBT         = of(CompoundTag.class, ByteBufCodecs.COMPOUND_TAG);
+    public static final RpcParameterSerializer<Tag>         NBT         = of(Tag.class, ByteBufCodecs.TAG);
     public static final RpcParameterSerializer<Component>   TEXT        = of(Component.class, ComponentSerialization.STREAM_CODEC);
     public static final RpcParameterSerializer<BlockState>  BLOCK_STATE = of(BlockState.class, ByteBufCodecs.idMapper(Block.BLOCK_STATE_REGISTRY));
     public static final RpcParameterSerializer<ItemStack>   ITEM_STACK  = of(ItemStack.class, ItemStack.STREAM_CODEC);
