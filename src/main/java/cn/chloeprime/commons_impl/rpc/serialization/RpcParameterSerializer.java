@@ -2,6 +2,7 @@ package cn.chloeprime.commons_impl.rpc.serialization;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 import java.lang.reflect.Array;
@@ -111,11 +112,7 @@ public interface RpcParameterSerializer<T> {
     }
 
     static <T> RpcParameterSerializer<T> of(Class<T> type, Codec<T> codec) {
-        return of(
-                type,
-                (buf, value) -> RpcSerializationUtils.encodeByCodec(codec, buf, value),
-                buf -> RpcSerializationUtils.decodeByCodec(codec, buf)
-        );
+        return of(type, ByteBufCodecs.fromCodec(codec));
     }
 
     /**
