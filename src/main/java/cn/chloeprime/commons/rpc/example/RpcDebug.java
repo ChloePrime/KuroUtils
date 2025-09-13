@@ -28,7 +28,7 @@ import java.util.UUID;
 
 @EventBusSubscriber(Dist.CLIENT)
 public class RpcDebug implements Serializable {
-    private static final boolean ENABLED = true;
+    private static final boolean ENABLED = false;
 
     @SubscribeEvent
     public static void onInput(InputEvent.Key event) {
