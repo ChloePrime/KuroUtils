@@ -162,7 +162,7 @@ public class RpcSerializers {
             if (type == Object.class) {
                 continue;
             }
-            BY_TYPE.put(type, RpcParameterSerializer.of(type, (buf, value) -> buf.writeId(registry, value), buf -> buf.readById(registry)));
+            BY_TYPE.put(type, RESOURCE_LOCATION.transform(type, registry::get, registry::getKey));
         }
     }
 
