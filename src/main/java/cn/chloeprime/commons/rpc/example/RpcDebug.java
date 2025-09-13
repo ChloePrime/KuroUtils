@@ -15,20 +15,20 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.util.thread.EffectiveSide;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.util.thread.EffectiveSide;
+import net.neoforged.neoforge.client.event.InputEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
-@Mod.EventBusSubscriber(Dist.CLIENT)
+@EventBusSubscriber(Dist.CLIENT)
 public class RpcDebug implements Serializable {
-    private static final boolean ENABLED = false;
+    private static final boolean ENABLED = true;
 
     @SubscribeEvent
     public static void onInput(InputEvent.Key event) {

@@ -1,7 +1,8 @@
 package cn.chloeprime.commons_impl.rpc.serialization;
 
 import com.mojang.serialization.Codec;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.lang.reflect.Array;
 import java.util.function.BiConsumer;
@@ -11,8 +12,8 @@ import java.util.function.ToIntFunction;
 
 public interface RpcParameterSerializer<T> {
     Class<T> getBaseClass();
-    void encode(FriendlyByteBuf buf, T value);
-    T decode(FriendlyByteBuf buf);
+    void encode(RegistryFriendlyByteBuf buf, T value);
+    T decode(RegistryFriendlyByteBuf buf);
 
     /**
      * Constructs a serializer for a specific type.
@@ -22,8 +23,8 @@ public interface RpcParameterSerializer<T> {
      */
     static <T> RpcParameterSerializer<T> of(
             Class<T> baseClass,
-            BiConsumer<FriendlyByteBuf, T> encoder,
-            Function<FriendlyByteBuf, T> decoder
+            BiConsumer<RegistryFriendlyByteBuf, T> encoder,
+            Function<RegistryFriendlyByteBuf, T> decoder
     ) {
         return new RpcParameterSerializer<>() {
             @Override
@@ -32,12 +33,12 @@ public interface RpcParameterSerializer<T> {
             }
 
             @Override
-            public void encode(FriendlyByteBuf buf, T value) {
+            public void encode(RegistryFriendlyByteBuf buf, T value) {
                 encoder.accept(buf, value);
             }
 
             @Override
-            public T decode(FriendlyByteBuf buf) {
+            public T decode(RegistryFriendlyByteBuf buf) {
                 return decoder.apply(buf);
             }
         };
@@ -54,8 +55,8 @@ public interface RpcParameterSerializer<T> {
             Class<A> arrayType,
             IntFunction<A> constructor,
             ToIntFunction<A> lengthGetter,
-            BiConsumer<FriendlyByteBuf, A> encoder,
-            BiConsumer<FriendlyByteBuf, A> decoder
+            BiConsumer<RegistryFriendlyByteBuf, A> encoder,
+            BiConsumer<RegistryFriendlyByteBuf, A> decoder
     ) {
         return new RpcParameterSerializer<>() {
             @Override
@@ -64,13 +65,13 @@ public interface RpcParameterSerializer<T> {
             }
 
             @Override
-            public void encode(FriendlyByteBuf buf, A array) {
+            public void encode(RegistryFriendlyByteBuf buf, A array) {
                 buf.writeVarInt(lengthGetter.applyAsInt(array));
                 encoder.accept(buf, array);
             }
 
             @Override
-            public A decode(FriendlyByteBuf buf) {
+            public A decode(RegistryFriendlyByteBuf buf) {
                 var array = constructor.apply(buf.readVarInt());
                 decoder.accept(buf, array);
                 return array;
@@ -88,8 +89,8 @@ public interface RpcParameterSerializer<T> {
     @SuppressWarnings("unchecked")
     static <T> RpcParameterSerializer<T[]> arrayOf(
             Class<T> elementClass,
-            BiConsumer<FriendlyByteBuf, T> elementEncoder,
-            Function<FriendlyByteBuf, T> elementDecoder
+            BiConsumer<RegistryFriendlyByteBuf, T> elementEncoder,
+            Function<RegistryFriendlyByteBuf, T> elementDecoder
     ) {
         var arrayClass = (Class<T[]>) elementClass.arrayType();
         return ofArray(
@@ -117,6 +118,13 @@ public interface RpcParameterSerializer<T> {
         );
     }
 
+    /**
+     * @since 2101.2.0.0
+     */
+    static <T> RpcParameterSerializer<T> of(Class<T> type , StreamCodec<? super RegistryFriendlyByteBuf, T> codec) {
+        return of(type, codec::encode, codec::decode);
+    }
+
     default RpcParameterSerializer<T[]> arrayType() {
         return arrayOf(getBaseClass(), this::encode, this::decode);
     }
@@ -133,12 +141,12 @@ public interface RpcParameterSerializer<T> {
             }
 
             @Override
-            public void encode(FriendlyByteBuf buf, R value) {
+            public void encode(RegistryFriendlyByteBuf buf, R value) {
                 RpcParameterSerializer.this.encode(buf, from.apply(value));
             }
 
             @Override
-            public R decode(FriendlyByteBuf buf) {
+            public R decode(RegistryFriendlyByteBuf buf) {
                 return to.apply(RpcParameterSerializer.this.decode(buf));
             }
         };

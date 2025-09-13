@@ -6,10 +6,10 @@ import com.google.common.collect.HashBiMap;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -17,12 +17,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Tracks MethodIDs that should be known by certain remote.
  */
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public record MethodKnowledgeDatabase(
         MutableInt idCounter,
         BiMap<LambdaReflectResult, MethodID> knownMethods
@@ -82,9 +81,9 @@ public record MethodKnowledgeDatabase(
         }
     }
 
-    public static void putLocalKnowledge(NetworkEvent.Context context, RpcMethodAcknowledgmentPacket packet) {
-        var endpoint = context.getDirection().getReceptionSide().isServer()
-                ? Endpoint.forPlayer(Objects.requireNonNull(context.getSender()))
+    public static void putLocalKnowledge(IPayloadContext context, RpcMethodAcknowledgmentPacket packet) {
+        var endpoint = context.flow().getReceptionSide().isServer()
+                ? Endpoint.forPlayer((ServerPlayer) context.player())
                 : Endpoint.SERVER;
 
         if (LOCAL_BAD_METHOD_IDS.getInt(endpoint) == packet.id()) {

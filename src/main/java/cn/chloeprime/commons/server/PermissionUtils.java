@@ -4,10 +4,10 @@ import cn.chloeprime.commons_impl.xver.CrossVersionHelper;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.server.permission.PermissionAPI;
-import net.minecraftforge.server.permission.nodes.PermissionDynamicContextKey;
-import net.minecraftforge.server.permission.nodes.PermissionNode;
-import net.minecraftforge.server.permission.nodes.PermissionTypes;
+import net.neoforged.neoforge.server.permission.PermissionAPI;
+import net.neoforged.neoforge.server.permission.nodes.PermissionDynamicContextKey;
+import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
+import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
 
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -64,7 +64,7 @@ public class PermissionUtils {
     ) {
         public boolean check(CommandSourceStack sender) {
             if (sender.isPlayer()) {
-                return PermissionAPI.getPermission(Objects.requireNonNull(sender.getPlayer()), node) == Boolean.TRUE;
+                return PermissionAPI.getPermission(Objects.requireNonNull(sender.getPlayer()), node);
             } else {
                 return true;
             }

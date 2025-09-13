@@ -2,14 +2,14 @@ package cn.chloeprime.commons_impl.rpc.serialization;
 
 import cn.chloeprime.commons.rpc.exception.ParameterSerializationException;
 import cn.chloeprime.commons_impl.rpc.LambdaReflectResult;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 
 import java.util.Map;
 import java.util.Objects;
 
 public class RpcSerializationManager {
     @SuppressWarnings("unchecked")
-    public static void write(FriendlyByteBuf buf, LambdaReflectResult lambda, Object[] arguments) throws UnsupportedOperationException {
+    public static void write(RegistryFriendlyByteBuf buf, LambdaReflectResult lambda, Object[] arguments) throws UnsupportedOperationException {
         Class<?>[] parameterTypes = lambda.handle().type().parameterArray();
         for (int i = 0; i < parameterTypes.length; i++) {
             var parameterType = WRAPPER_TO_PRIMITIVE.getOrDefault(parameterTypes[i], parameterTypes[i]);
@@ -17,7 +17,7 @@ public class RpcSerializationManager {
         }
     }
 
-    public static Object[] read(FriendlyByteBuf buf, LambdaReflectResult lambda) {
+    public static Object[] read(RegistryFriendlyByteBuf buf, LambdaReflectResult lambda) {
         Class<?>[] parameterTypes = lambda.handle().type().parameterArray();
         var parameters = new Object[parameterTypes.length];
         for (int i = 0; i < parameters.length; i++) {

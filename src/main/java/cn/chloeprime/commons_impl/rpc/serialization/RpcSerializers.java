@@ -4,27 +4,25 @@ import cn.chloeprime.commons_impl.CommonProxy;
 import cn.chloeprime.commons_impl.KuroUtilsMod;
 import cn.chloeprime.commons_impl.rpc.RpcSupport;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.DefaultedRegistry;
-import net.minecraft.core.Registry;
-import net.minecraft.core.Vec3i;
+import net.minecraft.core.*;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryBuilder;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -36,7 +34,7 @@ import static cn.chloeprime.commons_impl.rpc.serialization.RpcParameterSerialize
 /**
  * Basically this is just Stream Codec with class information :P
  */
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber
 public class RpcSerializers {
     /**
      * WARNING: the registry does not contain serializers of registry entries (blocks, items, etc.)
@@ -58,7 +56,7 @@ public class RpcSerializers {
     public static final RpcParameterSerializer<long[]>      LONGS       = of(long[].class, FriendlyByteBuf::writeLongArray, FriendlyByteBuf::readLongArray);
     public static final RpcParameterSerializer<BigInteger>  BIG_INT     = BYTES.transform(BigInteger.class, BigInteger::new, BigInteger::toByteArray);
     public static final RpcParameterSerializer<BigDecimal>  BIG_DECIMAL = STRING.transform(BigDecimal.class, BigDecimal::new, BigDecimal::toString);
-    public static final RpcParameterSerializer<UUID>        UUID        = of(UUID.class, FriendlyByteBuf::writeUUID, FriendlyByteBuf::readUUID);
+    public static final RpcParameterSerializer<UUID>        UUID        = of(UUID.class, UUIDUtil.STREAM_CODEC);
     public static final RpcParameterSerializer<Date>        DATE        = of(Date.class, FriendlyByteBuf::writeDate, FriendlyByteBuf::readDate);
     public static final RpcParameterSerializer<Instant>     TIMESTAMP   = of(Instant.class, FriendlyByteBuf::writeInstant, FriendlyByteBuf::readInstant);
 
@@ -66,10 +64,10 @@ public class RpcSerializers {
     public static final RpcParameterSerializer<Vec3>        VECTOR_3    = of(Vec3.class, RpcSerializers::writeVec3, RpcSerializers::readVec3);
     public static final RpcParameterSerializer<Vec3i>       VECTOR_3I   = of(Vec3i.class, RpcSerializers::writeVec3i, RpcSerializers::readVec3i);
     public static final RpcParameterSerializer<BlockPos>    BLOCK_POS   = VECTOR_3I.transform(BlockPos.class, BlockPos::new, bp -> bp);
-    public static final RpcParameterSerializer<CompoundTag> NBT         = of(CompoundTag.class, CompoundTag.CODEC);
-    public static final RpcParameterSerializer<Component>   TEXT        = of(Component.class, ExtraCodecs.COMPONENT);
-    public static final RpcParameterSerializer<BlockState>  BLOCK_STATE = of(BlockState.class, BlockState.CODEC);
-    public static final RpcParameterSerializer<ItemStack>   ITEM_STACK  = of(ItemStack.class, ItemStack.CODEC);
+    public static final RpcParameterSerializer<CompoundTag> NBT         = of(CompoundTag.class, ByteBufCodecs.COMPOUND_TAG);
+    public static final RpcParameterSerializer<Component>   TEXT        = of(Component.class, ComponentSerialization.STREAM_CODEC);
+    public static final RpcParameterSerializer<BlockState>  BLOCK_STATE = of(BlockState.class, ByteBufCodecs.idMapper(Block.BLOCK_STATE_REGISTRY));
+    public static final RpcParameterSerializer<ItemStack>   ITEM_STACK  = of(ItemStack.class, ItemStack.STREAM_CODEC);
 
      /**
      * WARNING: Nullable
@@ -86,10 +84,7 @@ public class RpcSerializers {
 
     public static void init(IEventBus bus) {
         var dfr = DeferredRegister.create(REGISTRY_KEY, KuroUtilsMod.MODID);
-        dfr.makeRegistry(() -> new RegistryBuilder<RpcParameterSerializer<?>>()
-                .hasTags()
-                .disableSaving()
-                .disableSync());
+        dfr.makeRegistry(builder -> {});
         // Java
         dfr.register("z", () -> BOOL);
         dfr.register("b", () -> BYTE);
@@ -153,7 +148,10 @@ public class RpcSerializers {
             if (type == Object.class) {
                 continue;
             }
-            BY_TYPE.put(type, RpcParameterSerializer.of(type, (buf, value) -> buf.writeId(registry, value), buf -> buf.readById(registry)));
+            RpcParameterSerializer serializer = registry.doesSync()
+                    ? of(type, ByteBufCodecs.idMapper(registry))
+                    : of(type, registry.holderByNameCodec());
+            BY_TYPE.put(type, serializer);
         }
     }
 

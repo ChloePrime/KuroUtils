@@ -3,11 +3,9 @@ package cn.chloeprime.commons_impl.rpc.serialization;
 import cn.chloeprime.commons.rpc.exception.ParameterSerializationException;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.*;
 import net.minecraft.network.FriendlyByteBuf;
+import net.neoforged.fml.ModList;
 import org.jetbrains.annotations.VisibleForTesting;
 
 import java.io.ByteArrayInputStream;
@@ -19,14 +17,18 @@ import java.util.Set;
 
 public class RpcSerializationUtils {
     public static final String WRAPPED_VALUE_KEY = "__value__";
+    public static final Set<String> PACKET_FIX_MODS = Set.of("packetfixer", "krypton", "krypton_fnp", "connectivity");
+    public static final NbtAccounter MAX_NBT_SIZE = PACKET_FIX_MODS.stream().anyMatch(ModList.get()::isLoaded)
+            ? NbtAccounter.unlimitedHeap()
+            : NbtAccounter.create(1024L);
 
     public static <T> void encodeByCodec(Codec<T> codec, FriendlyByteBuf buf, T value) {
         // T -> Tag
-        var result = codec.encodeStart(NbtOps.INSTANCE, value).get();
-        result.ifRight(error -> {
+        var result = codec.encodeStart(NbtOps.INSTANCE, value);
+        result.ifError(error -> {
             throw new ParameterSerializationException(error.message());
         });
-        Tag tag = result.left().orElseThrow(ParameterSerializationException::new);
+        Tag tag = result.result().orElseThrow(ParameterSerializationException::new);
         try {
             // Tag -> CompoundTag
             CompoundTag compound;
@@ -50,7 +52,7 @@ public class RpcSerializationUtils {
         CompoundTag compound;
         try {
             var raw = buf.readByteArray();
-            compound = NbtIo.readCompressed(new ByteArrayInputStream(raw));
+            compound = NbtIo.readCompressed(new ByteArrayInputStream(raw), MAX_NBT_SIZE);
         } catch (IOException ex) {
             throw new ParameterSerializationException(ex);
         }
@@ -62,11 +64,11 @@ public class RpcSerializationUtils {
             realTag = compound;
         }
         // Tag -> T
-        var result = codec.decode(NbtOps.INSTANCE, realTag).get();
-        result.ifRight(error -> {
+        var result = codec.decode(NbtOps.INSTANCE, realTag);
+        result.ifError(error -> {
             throw new ParameterSerializationException(error.message());
         });
-        return result.left().map(Pair::getFirst).orElseThrow(ParameterSerializationException::new);
+        return result.result().map(Pair::getFirst).orElseThrow(ParameterSerializationException::new);
     }
 
     @VisibleForTesting

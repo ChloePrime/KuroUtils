@@ -1,40 +1,41 @@
 package cn.chloeprime.commons_impl.rpc.packet;
 
+import cn.chloeprime.commons_impl.KuroUtilsMod;
 import cn.chloeprime.commons_impl.rpc.LambdaReflectResult;
 import cn.chloeprime.commons_impl.rpc.MethodKnowledgeDatabase;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
-
-import java.util.function.Supplier;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.NotNull;
 
 public record RpcMethodAcknowledgmentPacket(
         int id,
         String clazz,
         String methodName,
         String methodSignature
-) {
+) implements CustomPacketPayload {
+    public static final Type<RpcMethodAcknowledgmentPacket> TYPE = new Type<>(KuroUtilsMod.loc("rpc_knowledge"));
+
+    public static final StreamCodec<ByteBuf, RpcMethodAcknowledgmentPacket> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.VAR_INT, RpcMethodAcknowledgmentPacket::id,
+            ByteBufCodecs.STRING_UTF8, RpcMethodAcknowledgmentPacket::clazz,
+            ByteBufCodecs.STRING_UTF8, RpcMethodAcknowledgmentPacket::methodName,
+            ByteBufCodecs.STRING_UTF8, RpcMethodAcknowledgmentPacket::methodSignature,
+            RpcMethodAcknowledgmentPacket::new
+    );
+
     public RpcMethodAcknowledgmentPacket(int id, LambdaReflectResult lambda) {
         this(id, lambda.className(), lambda.methodName(), lambda.methodSignature());
     }
 
-    public void encode(FriendlyByteBuf buffer) {
-        buffer.writeVarInt(id);
-        buffer.writeUtf(clazz);
-        buffer.writeUtf(methodName);
-        buffer.writeUtf(methodSignature);
-    }
-
-    public static RpcMethodAcknowledgmentPacket decode(FriendlyByteBuf buffer) {
-        var id = buffer.readVarInt();
-        var clazz = buffer.readUtf();
-        var methodName = buffer.readUtf();
-        var methodSign = buffer.readUtf();
-        return new RpcMethodAcknowledgmentPacket(id, clazz, methodName, methodSign);
-    }
-
-    public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
-        var context = contextSupplier.get();
+    public void handle(IPayloadContext context) {
         MethodKnowledgeDatabase.putLocalKnowledge(context, this);
-        context.setPacketHandled(true);
+    }
+
+    @Override
+    public @NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

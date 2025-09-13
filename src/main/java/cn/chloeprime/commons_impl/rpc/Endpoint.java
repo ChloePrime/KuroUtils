@@ -1,10 +1,10 @@
 package cn.chloeprime.commons_impl.rpc;
 
-import cn.chloeprime.commons_impl.network.KUNetwork;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.fml.util.thread.EffectiveSide;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.fml.util.thread.EffectiveSide;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -24,7 +24,7 @@ public record Endpoint(
         return new Endpoint(serverPlayer.getUUID());
     }
 
-    public void send(Object packet) {
+    public void send(CustomPacketPayload packet) {
         var side = EffectiveSide.get();
         if (side.isClient() != this.isServer()) {
             var msg = side.isServer()
@@ -33,12 +33,13 @@ public record Endpoint(
             throw new IllegalStateException(msg);
         }
         if (side.isClient()) {
-            KUNetwork.CHANNEL.sendToServer(packet);
+            PacketDistributor.sendToServer(packet);
         }
         if (side.isServer()) {
             var id = Objects.requireNonNull(this.id());
-            if (ServerLifecycleHooks.getCurrentServer().overworld().getPlayerByUUID(id) instanceof ServerPlayer player) {
-                KUNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), packet);
+            var server = Objects.requireNonNull(ServerLifecycleHooks.getCurrentServer(), "Server is not found on the server side?");
+            if (server.overworld().getPlayerByUUID(id) instanceof ServerPlayer player) {
+                PacketDistributor.sendToPlayer(player, packet);
             }
         }
     }

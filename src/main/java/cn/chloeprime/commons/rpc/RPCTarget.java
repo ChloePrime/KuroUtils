@@ -1,17 +1,17 @@
 package cn.chloeprime.commons.rpc;
 
 import cn.chloeprime.commons_impl.mixin.ChunkMapAccessor;
-import cn.chloeprime.commons_impl.network.KUNetwork;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Iterables;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ChunkMap;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerPlayerConnection;
 import net.minecraft.world.entity.Entity;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fml.util.thread.EffectiveSide;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.fml.LogicalSide;
+import net.neoforged.fml.util.thread.EffectiveSide;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -48,7 +48,7 @@ public sealed abstract class RPCTarget {
     }
 
     public abstract Iterable<@NotNull ServerPlayer> getTarget();
-    public abstract void send(Object packet);
+    public abstract void send(CustomPacketPayload packet);
 
     public boolean isServer() {
         return this instanceof Server;
@@ -80,8 +80,8 @@ public sealed abstract class RPCTarget {
         }
 
         @Override
-        public void send(Object packet) {
-            KUNetwork.CHANNEL.sendToServer(packet);
+        public void send(CustomPacketPayload packet) {
+            PacketDistributor.sendToServer(packet);
         }
     }
 
@@ -98,8 +98,8 @@ public sealed abstract class RPCTarget {
         }
 
         @Override
-        public void send(Object packet) {
-            KUNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), packet);
+        public void send(CustomPacketPayload packet) {
+            PacketDistributor.sendToPlayer(player, packet);
         }
     }
 
@@ -130,11 +130,8 @@ public sealed abstract class RPCTarget {
         }
 
         @Override
-        public void send(Object packet) {
-            var distributor = center instanceof ServerPlayer
-                    ? PacketDistributor.TRACKING_ENTITY_AND_SELF
-                    : PacketDistributor.TRACKING_ENTITY;
-            KUNetwork.CHANNEL.send(distributor.with(() -> center), packet);
+        public void send(CustomPacketPayload packet) {
+            PacketDistributor.sendToPlayersTrackingEntityAndSelf(center, packet);
         }
     }
 
@@ -147,7 +144,7 @@ public sealed abstract class RPCTarget {
         }
 
         @Override
-        public void send(Object packet) {
+        public void send(CustomPacketPayload packet) {
             // Noop
         }
 
