@@ -11,6 +11,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LeavesBlock;
@@ -47,12 +48,12 @@ public class RpcDebug implements Serializable {
     @RemoteCallable(flow = RPCFlow.CLIENT_TO_SERVER)
     public static void staticy(int arg0, Block arg2) {
         KuroUtilsMod.LOGGER.info("I'm on {}!!!, {}, {}", EffectiveSide.get(), arg0, arg2);
-        RPC.call(RPCTarget.reply(), RpcDebug::reply, arg0, arg2, new EntityType[]{EntityType.CREEPER, EntityType.ENDERMAN}, RPCContext.getSenderPlayer());
+        RPC.call(RPCTarget.reply(), RpcDebug::reply, arg0, arg2, new EntityType[]{EntityType.CREEPER, EntityType.ENDERMAN}, RecipeType.BLASTING, RPCContext.getSenderPlayer());
     }
 
     @RemoteCallable(flow = RPCFlow.SERVER_TO_CLIENT)
-    public static void reply(int arg0, Block arg2, EntityType<?>[] objArray, @Nullable Player player) {
-        KuroUtilsMod.LOGGER.info("I'm {}, I'm on {}!!!, {}, {}, {}, {}", Objects.requireNonNull(player).getName().getString(), EffectiveSide.get(), arg0, arg2, objArray[1], objArray.length);
+    public static void reply(int arg0, Block arg2, EntityType<?>[] objArray, RecipeType<?> interfaceBased, @Nullable Player player) {
+        KuroUtilsMod.LOGGER.info("I'm {}, I'm on {}!!!, {}, {}, {}, {}, {}", Objects.requireNonNull(player).getName().getString(), EffectiveSide.get(), arg0, arg2, objArray[1], objArray.length, interfaceBased);
         RPC.call(
                 RPCTarget.reply(), RpcDebug::reply2,
                 new byte[]{0x70, 0x10, 0x20},
