@@ -28,8 +28,13 @@ import java.util.UUID;
 
 @Mod.EventBusSubscriber(Dist.CLIENT)
 public class RpcDebug implements Serializable {
+    private static final boolean ENABLED = false;
+
     @SubscribeEvent
     public static void onInput(InputEvent.Key event) {
+        if (!ENABLED) {
+            return;
+        }
         if (event.getAction() != InputConstants.PRESS) {
             return;
         }

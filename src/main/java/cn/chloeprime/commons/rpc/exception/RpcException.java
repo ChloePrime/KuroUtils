@@ -1,5 +1,6 @@
 package cn.chloeprime.commons.rpc.exception;
 
+@SuppressWarnings("unused")
 public class RpcException extends RuntimeException {
     @java.io.Serial
     private static final long serialVersionUID = 5214527086436941368L;

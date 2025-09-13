@@ -54,6 +54,7 @@ public sealed abstract class RPCTarget {
         return this instanceof Server;
     }
 
+    @SuppressWarnings("Convert2MethodRef")
     private static final Supplier<RPCTarget> SERVER = Suppliers.memoize(() -> new Server());
 
     public static void checkCallingSide(LogicalSide required) {

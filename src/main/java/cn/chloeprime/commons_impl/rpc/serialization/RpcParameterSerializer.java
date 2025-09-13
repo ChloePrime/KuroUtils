@@ -57,7 +57,7 @@ public interface RpcParameterSerializer<T> {
             BiConsumer<FriendlyByteBuf, A> encoder,
             BiConsumer<FriendlyByteBuf, A> decoder
     ) {
-        return new RpcParameterSerializer<A>() {
+        return new RpcParameterSerializer<>() {
             @Override
             public Class<A> getBaseClass() {
                 return arrayType;
@@ -126,7 +126,7 @@ public interface RpcParameterSerializer<T> {
             Function<T, R> to,
             Function<R, T> from
     ) {
-        return new RpcParameterSerializer<R>() {
+        return new RpcParameterSerializer<>() {
             @Override
             public Class<R> getBaseClass() {
                 return targetClass;
