@@ -60,7 +60,7 @@ public class RpcSerializationManager {
                 // 处理可被序列化的接口
                 // 如果本类直接实现的接口发现序列化器，那么remove上一次计算（它的子类）的结果
                 var thisClassHasInterfaceResult = false;
-                for (Class<?> i : clazz.getInterfaces()){
+                for (Class<?> i : clazz.getInterfaces()) {
                     var interfaceSerializer = RpcSerializers.BY_TYPE.get(i);
                     if (interfaceSerializer != null) {
                         if (!thisClassHasInterfaceResult) {
@@ -73,7 +73,7 @@ public class RpcSerializationManager {
                 clazz = clazz.getSuperclass();
             }
             if (argType.isArray()) {
-                return getSerializerFor(argType.componentType()).arrayType();
+                return getSerializerFor0(argType.componentType()).arrayType();
             }
             if (interfaceResults.size() == 1) {
                 return interfaceResults.iterator().next();
