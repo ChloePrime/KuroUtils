@@ -1,12 +1,15 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "cn.chloeprime.kuroutils.mixin",
+  "package": "cn.chloeprime.commons_impl.mixin",
   "compatibilityLevel": "JAVA_8",
   "refmap": "kuroutils.refmap.json",
   "mixins": [
+    "ChunkMapAccessor",
+    "ChunkMapAccessor$TrackedEntity"
   ],
   "client": [
+    "client.ClientLevelAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

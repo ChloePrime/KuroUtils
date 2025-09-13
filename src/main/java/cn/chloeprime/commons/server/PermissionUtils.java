@@ -1,6 +1,6 @@
-package cn.chloeprime.kuroutils;
+package cn.chloeprime.commons.server;
 
-import cn.chloeprime.kuroutils.internal.xver.CrossVersionHelper;
+import cn.chloeprime.commons_impl.xver.CrossVersionHelper;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.resources.ResourceLocation;

@@ -1,4 +1,4 @@
-package cn.chloeprime.kuroutils.internal.xver;
+package cn.chloeprime.commons_impl.xver;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
