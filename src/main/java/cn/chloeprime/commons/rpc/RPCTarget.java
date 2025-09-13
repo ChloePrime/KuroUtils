@@ -1,5 +1,6 @@
 package cn.chloeprime.commons.rpc;
 
+import cn.chloeprime.commons.rpc.exception.RpcException;
 import cn.chloeprime.commons_impl.mixin.ChunkMapAccessor;
 import cn.chloeprime.commons_impl.network.KUNetwork;
 import com.google.common.base.Suppliers;
@@ -12,6 +13,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.util.thread.EffectiveSide;
 import net.minecraftforge.network.PacketDistributor;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -19,20 +21,33 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 
+/**
+ * Represents an RPC call's target.
+ */
 public sealed abstract class RPCTarget {
     /**
-     * Client -> Server
+     * Client -> Server.
      */
     public static RPCTarget toServer() {
         checkCallingSide(LogicalSide.CLIENT);
         return SERVER.get();
     }
 
+    /**
+     * Client -> A specific client.
+     */
     public static RPCTarget to(@NotNull ServerPlayer player) {
         checkCallingSide(LogicalSide.SERVER);
         return new ToPlayer(player);
     }
 
+    /**
+     * Represents the caller of this RPC method.
+     * Can only be called within the body of an RPC method.
+     * Noop if it is called from other places or when the player has logged out.
+     *
+     * @throws RpcException when called on the server outside an RPC method.
+     */
     public static RPCTarget reply() {
         if (EffectiveSide.get().isClient()) {
             return toServer();
@@ -42,14 +57,36 @@ public sealed abstract class RPCTarget {
         return sender != null ? to(sender) : Noop.INSTANCE;
     }
 
+    /**
+     * Represents any player that is tracking {@code center}
+     *
+     * @param center the center of the {@link RPCTarget}.
+     * @return an {@link RPCTarget} that will send to all players tracking {@code center}, including {@code center} itself if it is a player.
+     */
     public static RPCTarget near(Entity center) {
         checkCallingSide(LogicalSide.SERVER);
         return new ToNearby(center);
     }
 
+    /**
+     * Get the target players to send to.
+     */
+    @ApiStatus.OverrideOnly
     public abstract Iterable<@NotNull ServerPlayer> getTarget();
+
+    /**
+     * Unused.
+     *
+     * @see cn.chloeprime.commons_impl.rpc.Endpoint#send(Object) please use that.
+     */
+    @ApiStatus.OverrideOnly
     public abstract void send(Object packet);
 
+    /**
+     * Checks whether the target represents a server.
+     *
+     * @return true if this target represents the server.
+     */
     public boolean isServer() {
         return this instanceof Server;
     }
@@ -57,6 +94,13 @@ public sealed abstract class RPCTarget {
     @SuppressWarnings("Convert2MethodRef")
     private static final Supplier<RPCTarget> SERVER = Suppliers.memoize(() -> new Server());
 
+    /**
+     * Checks whether this target can be called from the following side.
+     *
+     * @param required the required side of this target.
+     * @throws UnsupportedOperationException if this target can't be called from the following side.
+     */
+    @ApiStatus.Internal
     public static void checkCallingSide(LogicalSide required) {
         var current = EffectiveSide.get();
         if (current == required) {
@@ -70,21 +114,37 @@ public sealed abstract class RPCTarget {
         }
     }
 
+    /**
+     * The server.
+     *
+     * @see #toServer()
+     */
     public static final class Server extends RPCTarget {
         private Server() {
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public Iterable<@NotNull ServerPlayer> getTarget() {
             return Collections.emptyList();
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public void send(Object packet) {
             KUNetwork.CHANNEL.sendToServer(packet);
         }
     }
 
+    /**
+     * A specific player.
+     *
+     * @see #to(ServerPlayer)
+     */
     public static final class ToPlayer extends RPCTarget {
         private final ServerPlayer player;
 
@@ -92,17 +152,28 @@ public sealed abstract class RPCTarget {
             this.player = Objects.requireNonNull(player);
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public Iterable<@NotNull ServerPlayer> getTarget() {
             return List.of(player);
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public void send(Object packet) {
             KUNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), packet);
         }
     }
 
+    /**
+     * All players that is tracking a specific entity.
+     *
+     * @see #near(Entity)
+     */
     public static final class ToNearby extends RPCTarget {
         private final Entity center;
 
@@ -110,6 +181,9 @@ public sealed abstract class RPCTarget {
             this.center = Objects.requireNonNull(center);
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public Iterable<@NotNull ServerPlayer> getTarget() {
             if (!(center.getCommandSenderWorld().getChunkSource() instanceof ServerChunkCache cache)) {
@@ -129,6 +203,9 @@ public sealed abstract class RPCTarget {
                     : seenByPlayers;
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public void send(Object packet) {
             var distributor = center instanceof ServerPlayer
@@ -138,14 +215,23 @@ public sealed abstract class RPCTarget {
         }
     }
 
+    /**
+     * Fallback implementation.
+     */
     public static final class Noop extends RPCTarget {
         public static final Noop INSTANCE = new Noop();
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public Iterable<@NotNull ServerPlayer> getTarget() {
             return Collections.emptyList();
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public void send(Object packet) {
             // Noop

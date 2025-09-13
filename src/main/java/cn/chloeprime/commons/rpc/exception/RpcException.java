@@ -1,5 +1,8 @@
 package cn.chloeprime.commons.rpc.exception;
 
+/**
+ * Thrown when an error occurs in the RPC system.
+ */
 @SuppressWarnings("unused")
 public class RpcException extends RuntimeException {
     @java.io.Serial
