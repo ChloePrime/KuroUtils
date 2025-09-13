@@ -252,7 +252,6 @@ publishing {
                     node.remove(node.dependencies) // Remove deps, as they are all mappings-dependent and/or forge
             }
             from components.java
-            jarJar.component(it)
         }
     }
 }
