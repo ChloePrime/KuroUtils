@@ -13,11 +13,13 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'net.minecraftforge.gradle' version '[6.0.16,6.2)'
+    id 'maven-publish'
 }
 
 apply plugin: 'org.spongepowered.mixin'
 
 group = mod_group_id
+def artifact_name = mod_id + "2"
 version = mod_version
 
 base {
@@ -212,4 +214,43 @@ tasks.named('jar', Jar).configure {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+
+tasks.withType(GenerateModuleMetadata) {
+    enabled = false
+}
+publishing {
+    repositories {
+        boolean has_chloe_maven
+        try {
+            "$CHLOE_MAVEN_PASSWORD"
+            has_chloe_maven = true
+        } catch (Exception ignored) {
+            has_chloe_maven = false
+        }
+        if (has_chloe_maven) {
+            maven {
+                name = "Chloe_Maven"
+                url = "https://maven.chloeprime.cn:4080/releases/"
+                credentials {
+                    username "$CHLOE_MAVEN_USERNAME"
+                    password "$CHLOE_MAVEN_PASSWORD"
+                }
+            }
+        }
+    }
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = group
+            artifactId = artifact_name
+            version = version
+            pom.withXml {
+                def node = asNode()
+                if(node.dependencies.size() > 0)
+                    node.remove(node.dependencies) // Remove deps, as they are all mappings-dependent and/or forge
+            }
+            from components.java
+            jarJar.component(it)
+        }
+    }
 }
