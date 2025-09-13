@@ -13,6 +13,7 @@ import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -62,15 +63,20 @@ public class RpcSerializers {
     public static final RpcParameterSerializer<Instant>     TIMESTAMP   = of(Instant.class, FriendlyByteBuf::writeInstant, FriendlyByteBuf::readInstant);
 
     // Minecraft
-    public static final RpcParameterSerializer<Vec3>        VECTOR_3    = of(Vec3.class, RpcSerializers::writeVec3, RpcSerializers::readVec3);
-    public static final RpcParameterSerializer<Vec3i>       VECTOR_3I   = of(Vec3i.class, RpcSerializers::writeVec3i, RpcSerializers::readVec3i);
-    public static final RpcParameterSerializer<BlockPos>    BLOCK_POS   = VECTOR_3I.transform(BlockPos.class, BlockPos::new, bp -> bp);
-    public static final RpcParameterSerializer<Tag>         NBT         = of(Tag.class, ByteBufCodecs.TAG);
-    public static final RpcParameterSerializer<Component>   TEXT        = of(Component.class, ComponentSerialization.STREAM_CODEC);
-    public static final RpcParameterSerializer<BlockState>  BLOCK_STATE = of(BlockState.class, ByteBufCodecs.idMapper(Block.BLOCK_STATE_REGISTRY));
-    public static final RpcParameterSerializer<ItemStack>   ITEM_STACK  = of(ItemStack.class, ItemStack.STREAM_CODEC);
+    public static final RpcParameterSerializer<ResourceLocation>    RESOURCE_LOCATION   = of(ResourceLocation.class, FriendlyByteBuf::writeResourceLocation, FriendlyByteBuf::readResourceLocation);
+    @SuppressWarnings("rawtypes")
+    public static final RpcParameterSerializer<ResourceKey>         RESOURCE_KEY        = of(ResourceKey.class, RpcSerializers::writeResourceKey, RpcSerializers::readResourceKey);
+    @SuppressWarnings("rawtypes")
+    public static final RpcParameterSerializer<TagKey>              TAG_KEY             = of(TagKey.class, RpcSerializers::writeTagKey, RpcSerializers::readTagKey);
+    public static final RpcParameterSerializer<Vec3>                VECTOR_3            = of(Vec3.class, RpcSerializers::writeVec3, RpcSerializers::readVec3);
+    public static final RpcParameterSerializer<Vec3i>               VECTOR_3I           = of(Vec3i.class, RpcSerializers::writeVec3i, RpcSerializers::readVec3i);
+    public static final RpcParameterSerializer<BlockPos>            BLOCK_POS           = VECTOR_3I.transform(BlockPos.class, BlockPos::new, bp -> bp);
+    public static final RpcParameterSerializer<Tag>                 NBT                 = of(Tag.class, ByteBufCodecs.TAG);
+    public static final RpcParameterSerializer<Component>           TEXT                = of(Component.class, ComponentSerialization.STREAM_CODEC);
+    public static final RpcParameterSerializer<BlockState>          BLOCK_STATE         = of(BlockState.class, ByteBufCodecs.idMapper(Block.BLOCK_STATE_REGISTRY));
+    public static final RpcParameterSerializer<ItemStack>           ITEM_STACK          = of(ItemStack.class, ItemStack.STREAM_CODEC);
 
-     /**
+    /**
      * WARNING: Nullable
      */
     public static final RpcParameterSerializer<Entity> ENTITY = INT.transform(Entity.class, CommonProxy::getEntityByID, Entity::getId);
@@ -105,6 +111,9 @@ public class RpcSerializers {
         dfr.register("date", () -> DATE);
         dfr.register("timestamp", () -> TIMESTAMP);
         // Minecraft
+        dfr.register("resource_location", () -> RESOURCE_LOCATION);
+        dfr.register("resource_key", () -> RESOURCE_KEY);
+        dfr.register("tag_key", () -> TAG_KEY);
         dfr.register("vec3", () -> VECTOR_3);
         dfr.register("vec3i", () -> VECTOR_3I);
         dfr.register("block_pos", () -> BLOCK_POS);
@@ -180,5 +189,25 @@ public class RpcSerializers {
         var y = buf.readVarInt();
         var z = buf.readVarInt();
         return new Vec3i(x, y, z);
+    }
+
+    private static void writeResourceKey(FriendlyByteBuf buf, ResourceKey<?> key) {
+        buf.writeResourceLocation(key.registry());
+        buf.writeResourceLocation(key.location());
+    }
+
+    private static ResourceKey<?> readResourceKey(FriendlyByteBuf buf) {
+        var registry = ResourceKey.createRegistryKey(buf.readResourceLocation());
+        return ResourceKey.create(registry, buf.readResourceLocation());
+    }
+
+    private static void writeTagKey(FriendlyByteBuf buf, TagKey<?> key) {
+        buf.writeResourceLocation(key.registry().location());
+        buf.writeResourceLocation(key.location());
+    }
+
+    private static TagKey<?> readTagKey(FriendlyByteBuf buf) {
+        var registry = ResourceKey.createRegistryKey(buf.readResourceLocation());
+        return TagKey.create(registry, buf.readResourceLocation());
     }
 }
