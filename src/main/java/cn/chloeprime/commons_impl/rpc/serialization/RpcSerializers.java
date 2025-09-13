@@ -160,7 +160,7 @@ public class RpcSerializers {
             }
             RpcParameterSerializer serializer = registry.doesSync()
                     ? of(type, ByteBufCodecs.idMapper(registry))
-                    : of(type, registry.holderByNameCodec().xmap(holder -> ((Holder) holder).value(), value -> registry.wrapAsHolder(value)));
+                    : RESOURCE_LOCATION.transform(type, registry::get, registry::getKey);
             BY_TYPE.put(type, serializer);
         }
     }
