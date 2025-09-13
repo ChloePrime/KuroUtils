@@ -161,9 +161,6 @@ sourceSets.main.resources.srcDir generateModMetadata
 // To avoid having to run "generateModMetadata" manually, make it run on every project reload
 neoForge.ideSyncTask generateModMetadata
 
-tasks.withType(GenerateModuleMetadata) {
-    enabled = false
-}
 publishing {
     repositories {
         boolean has_chloe_maven
@@ -189,11 +186,6 @@ publishing {
             groupId = group
             artifactId = artifact_name
             version = version
-            pom.withXml {
-                def node = asNode()
-                if(node.dependencies.size() > 0)
-                    node.remove(node.dependencies) // Remove deps, as they are all mappings-dependent and/or forge
-            }
             from components.java
         }
     }
