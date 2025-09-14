@@ -17,6 +17,18 @@ import java.util.Optional;
  */
 public class RPCContext {
     /**
+     * Whether the current context is called by the RPC system.
+     * If true, you can safely call {@link #getSender()} safely.
+     *
+     * @return whether the current context is called by the RPC system.
+     * @see RemoteCallable#callLocally() you should check this method if you enable that option.
+     * @since 2001.2.0.5, 2101.2.0.5
+     */
+    public static boolean isCalledThroughRPC() {
+        return RpcCallMethodPacket.LOCAL_CALL_CONTEXT.get().peek() == Boolean.FALSE && RpcCallMethodPacket.CONTEXT.get().peek() != null;
+    }
+
+    /**
      * Get the caller of the RPC call.
      *
      * @return the caller of the RPC call.

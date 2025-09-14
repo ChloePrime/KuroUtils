@@ -1,5 +1,8 @@
 package cn.chloeprime.commons.rpc;
 
+/**
+ * Direction of network operations.
+ */
 public enum RPCFlow {
     /**
      * Client to server.

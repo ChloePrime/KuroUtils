@@ -50,6 +50,7 @@ public class RpcSupport {
         if (method == null) {
             return;
         }
+        RemoteCallable metadata = Objects.requireNonNull(method.method().getAnnotation(RemoteCallable.class));
         // Collect endpoints
         Iterable<Endpoint> targetsEndpoints;
         if (target.isServer()) {
@@ -57,14 +58,31 @@ public class RpcSupport {
         } else {
             targetsEndpoints = Iterables.transform(target.getTarget(), Endpoint::forPlayer);
         }
+        var sender = ContextUtil.getLocalEndpoint();
+        if (metadata.callLocally()) {
+            var locallyStack = RpcCallMethodPacket.LOCAL_CALL_CONTEXT.get();
+            try {
+                locallyStack.push(true);
+                invoke(method.handle(), args);
+            } finally {
+                locallyStack.pop();
+            }
+        }
         for (var targetEndpoint : targetsEndpoints) {
             // Ensure remote knows MethodID
             if (!validateRpcCall(method, targetEndpoint)) {
                 continue;
             }
             var id = MethodKnowledgeDatabase.ensureRemoteKnowledge(targetEndpoint, method);
-            var sender = ContextUtil.getLocalEndpoint();
             targetEndpoint.send(new RpcCallMethodPacket(id, sender, method, args));
+        }
+    }
+
+    public static void invoke(MethodHandle handle, Object[] arguments) {
+        try {
+            handle.invokeWithArguments(arguments);
+        } catch (Throwable ex) {
+            RpcSupport.LOGGER.error("Failed to invoke RPC method", ex);
         }
     }
 

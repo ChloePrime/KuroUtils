@@ -12,8 +12,7 @@ public class ContextUtil {
      *
      * @return the {@link RegistryAccess}, always nonnull
      */
-    @NotNull
-    public static RegistryAccess getRegistryAccess() {
+    public static @NotNull RegistryAccess getRegistryAccess() {
         return CommonProxy
                 .getRegistryAccess()
                 .orElseThrow(() -> new IllegalStateException("Accessing RegistryAccess too early!"));
@@ -24,8 +23,7 @@ public class ContextUtil {
      *
      * @return the {@link RegistryAccess}, returns null if failed
      */
-    @Nullable
-    public static RegistryAccess getRegistryAccessSafely() {
+    public static @Nullable RegistryAccess getRegistryAccessSafely() {
         return CommonProxy
                 .getRegistryAccess()
                 .orElse(null);
@@ -36,7 +34,7 @@ public class ContextUtil {
      *
      * @return {@link Endpoint#SERVER} if called on the server, elsewise returns the endpoint for the current client.
      */
-    public static Endpoint getLocalEndpoint() {
+    public static @NotNull Endpoint getLocalEndpoint() {
         return CommonProxy.getLocalEndpoint();
     }
 }
