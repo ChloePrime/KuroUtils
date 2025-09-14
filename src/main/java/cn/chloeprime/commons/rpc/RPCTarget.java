@@ -1,6 +1,6 @@
 package cn.chloeprime.commons.rpc;
 
-import cn.chloeprime.commons.rpc.exception.RpcException;
+import cn.chloeprime.commons.rpc.exception.UnsupportedRpcOperationException;
 import cn.chloeprime.commons_impl.mixin.ChunkMapAccessor;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Iterables;
@@ -27,6 +27,9 @@ import java.util.function.Supplier;
 public sealed abstract class RPCTarget {
     /**
      * Client -> Server.
+     *
+     * @return an {@link RPCTarget} that represents the server.
+     * @throws UnsupportedRpcOperationException when called on the server.
      */
     public static RPCTarget toServer() {
         checkCallingSide(LogicalSide.CLIENT);
@@ -35,6 +38,10 @@ public sealed abstract class RPCTarget {
 
     /**
      * Client -> A specific client.
+     *
+     * @param player the server player that is running the wanted client.
+     * @return an {@link RPCTarget} that represents the server player's client.
+     * @throws UnsupportedRpcOperationException when called on the client.
      */
     public static RPCTarget to(@NotNull ServerPlayer player) {
         checkCallingSide(LogicalSide.SERVER);
@@ -46,10 +53,10 @@ public sealed abstract class RPCTarget {
      * Can only be called within the body of an RPC method.
      * Noop if it is called from other places or when the player has logged out.
      *
-     * @throws RpcException when called on the server outside an RPC method.
+     * @throws UnsupportedRpcOperationException when called outside an RPC method.
      */
     public static RPCTarget reply() {
-        if (EffectiveSide.get().isClient()) {
+        if (RPCContext.getSender().isServer()) {
             return toServer();
         }
         checkCallingSide(LogicalSide.SERVER);
@@ -62,6 +69,7 @@ public sealed abstract class RPCTarget {
      *
      * @param center the center of the {@link RPCTarget}.
      * @return an {@link RPCTarget} that will send to all players tracking {@code center}, including {@code center} itself if it is a player.
+     * @throws UnsupportedRpcOperationException when called on the client.
      */
     public static RPCTarget near(Entity center) {
         checkCallingSide(LogicalSide.SERVER);
@@ -98,7 +106,7 @@ public sealed abstract class RPCTarget {
      * Checks whether this target can be called from the following side.
      *
      * @param required the required side of this target.
-     * @throws UnsupportedOperationException if this target can't be called from the following side.
+     * @throws UnsupportedRpcOperationException if this target can't be called from the following side.
      */
     @ApiStatus.Internal
     public static void checkCallingSide(LogicalSide required) {
@@ -107,10 +115,10 @@ public sealed abstract class RPCTarget {
             return;
         }
         if (current.isServer()) {
-            throw new UnsupportedOperationException("Can't send packet from server to server");
+            throw new UnsupportedRpcOperationException("Can't send packet from server to server");
         }
         if (current.isClient()) {
-            throw new UnsupportedOperationException("Can't send packet from client to client");
+            throw new UnsupportedRpcOperationException("Can't send packet from client to client");
         }
     }
 
