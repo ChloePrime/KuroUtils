@@ -20,6 +20,20 @@ public @interface RemoteCallable {
     /**
      * The allowed network direction of this remote callable method.
      * If called on the wrong side, a {@link WrongRPCFlowException} will be thrown or logged.
+     *
+     * @return the allowed network direction of this remote callable method
      */
     @Nullable RPCFlow flow() default RPCFlow.BIDIRECTIONAL;
+
+    /**
+     * Whether the method will be called locally when called through the RPC system
+     * <p>
+     * If you set this to true,
+     * Please remember to check {@link RPCContext#isCalledThroughRPC()} before calling {@link RPCContext#getSender()}
+     *
+     * @return if true the method will be called locally when called through the RPC system.
+     * @see RPCContext#isCalledThroughRPC() the method to check whether the current context is called locally or remotely.
+     * @since 2001.2.0.5, 2101.2.0.5
+     */
+    boolean callLocally() default false;
 }

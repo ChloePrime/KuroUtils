@@ -51,17 +51,19 @@ public class RpcDebug implements Serializable {
         RPC.call(RPCTarget.reply(), RpcDebug::reply, arg0, arg2, new EntityType[]{EntityType.CREEPER, EntityType.ENDERMAN}, RecipeType.BLASTING, RPCContext.getSenderPlayer());
     }
 
-    @RemoteCallable(flow = RPCFlow.SERVER_TO_CLIENT)
+    @RemoteCallable(flow = RPCFlow.SERVER_TO_CLIENT, callLocally = true)
     public static void reply(int arg0, Block arg2, EntityType<?>[] objArray, RecipeType<?> interfaceBased, @Nullable Player player) {
         KuroUtilsMod.LOGGER.info("I'm {}, I'm on {}!!!, {}, {}, {}, {}, {}", Objects.requireNonNull(player).getName().getString(), EffectiveSide.get(), arg0, arg2, objArray[1], objArray.length, interfaceBased);
-        RPC.call(
-                RPCTarget.reply(), RpcDebug::reply2,
-                new byte[]{0x70, 0x10, 0x20},
-                Component.translatable("entity.minecraft.creeper").withStyle(ChatFormatting.GREEN),
-                randomNBT(),
-                Component.translatable("entity.minecraft.enderman").withStyle(ChatFormatting.BLACK),
-                Blocks.ACACIA_LEAVES.defaultBlockState().setValue(LeavesBlock.PERSISTENT, true)
-        );
+        if (RPCContext.isCalledThroughRPC()) {
+            RPC.call(
+                    RPCTarget.reply(), RpcDebug::reply2,
+                    new byte[]{0x70, 0x10, 0x20},
+                    Component.translatable("entity.minecraft.creeper").withStyle(ChatFormatting.GREEN),
+                    randomNBT(),
+                    Component.translatable("entity.minecraft.enderman").withStyle(ChatFormatting.BLACK),
+                    Blocks.ACACIA_LEAVES.defaultBlockState().setValue(LeavesBlock.PERSISTENT, true)
+            );
+        }
     }
 
     @RemoteCallable

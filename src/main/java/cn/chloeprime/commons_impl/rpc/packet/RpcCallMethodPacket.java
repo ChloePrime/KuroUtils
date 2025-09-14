@@ -57,15 +57,17 @@ public record RpcCallMethodPacket(
     }
 
     public static final ThreadLocal<Deque<Endpoint>> CONTEXT = ThreadLocal.withInitial(ArrayDeque::new);
-    private void call() {
+    public static final ThreadLocal<Deque<Boolean>>  LOCAL_CALL_CONTEXT = ThreadLocal.withInitial(ArrayDeque::new);
+    public void call() {
         var contextStack = CONTEXT.get();
+        var locallyStack = LOCAL_CALL_CONTEXT.get();
         try {
+            locallyStack.push(false);
             contextStack.push(this.sender());
-            method.handle().invokeWithArguments(arguments);
-        } catch (Throwable ex) {
-            RpcSupport.LOGGER.error("Failed to invoke RPC method", ex);
+            RpcSupport.invoke(method.handle(), arguments);
         } finally {
             contextStack.pop();
+            locallyStack.pop();
         }
     }
 }
