@@ -68,6 +68,7 @@ public class RpcSupport {
         }
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean validateRpcCall(LambdaReflectResult method, Endpoint target) {
         var anno = method.method().getAnnotation(RemoteCallable.class);
         if (anno == null) {
@@ -147,7 +148,7 @@ public class RpcSupport {
         throw new UnsupportedOperationException("Unserializable Lambda");
     }
 
-    private static boolean validateRpcMethod(Method method) {
+    public static boolean validateRpcMethod(Method method) {
         if (!Modifier.isStatic(method.getModifiers())) {
             final var msg = "RPC method should be static method";
             LOGGER.error(msg, new UnsupportedRpcOperationException(msg));

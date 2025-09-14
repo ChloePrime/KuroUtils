@@ -36,6 +36,11 @@ public record RpcCallMethodPacket(
         var known = MethodKnowledgeDatabase.getLocalKnowledge(sender, id);
         if (known == null) {
             RpcSupport.LOGGER.error("Unknown method id {}", id.value(), new RpcException("Unknown method id"));
+            buf.readerIndex(buf.writerIndex());
+            return INVALID;
+        }
+        if (!RpcSupport.validateRpcMethod(known.method()) || !RpcSupport.validateRpcCall(known, ContextUtil.getLocalEndpoint())) {
+            buf.readerIndex(buf.writerIndex());
             return INVALID;
         }
 
@@ -45,7 +50,7 @@ public record RpcCallMethodPacket(
 
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
         var context = contextSupplier.get();
-        if (isValid() && RpcSupport.validateRpcCall(method, ContextUtil.getLocalEndpoint())) {
+        if (isValid()) {
             context.enqueueWork(this::call);
         }
         context.setPacketHandled(true);
