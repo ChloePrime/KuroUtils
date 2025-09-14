@@ -37,7 +37,7 @@ public sealed abstract class RPCTarget {
     }
 
     /**
-     * Client -> A specific client.
+     * Server -> A specific client.
      *
      * @param player the server player that is running the wanted client.
      * @return an {@link RPCTarget} that represents the server player's client.
