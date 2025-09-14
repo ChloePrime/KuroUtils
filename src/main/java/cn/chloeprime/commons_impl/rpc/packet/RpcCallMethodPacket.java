@@ -43,13 +43,17 @@ public record RpcCallMethodPacket(
             buf.readerIndex(buf.writerIndex());
             return INVALID;
         }
+        if (!RpcSupport.validateRpcMethod(known.method()) || !RpcSupport.validateRpcCall(known, ContextUtil.getLocalEndpoint())) {
+            buf.readerIndex(buf.writerIndex());
+            return INVALID;
+        }
 
         var args = RpcSerializationManager.read(buf, known);
         return new RpcCallMethodPacket(id, sender, known, args);
     }
 
     public void handle(IPayloadContext ignored) {
-        if (isValid() && RpcSupport.validateRpcCall(method, ContextUtil.getLocalEndpoint())) {
+        if (isValid()) {
             call();
         }
     }
