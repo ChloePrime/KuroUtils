@@ -177,7 +177,7 @@ public sealed abstract class RPCTarget {
     public static final class ToNearby extends RPCTarget {
         private final Entity center;
 
-        private ToNearby(@NotNull Entity center) {
+        public ToNearby(@NotNull Entity center) {
             this.center = Objects.requireNonNull(center);
         }
 

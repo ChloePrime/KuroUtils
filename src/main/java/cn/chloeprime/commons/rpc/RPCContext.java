@@ -37,4 +37,6 @@ public class RPCContext {
         }
         return CommonProxy.getPlayerByUUID(sender.id()) instanceof ServerPlayer ssp ? ssp : null;
     }
+
+    private RPCContext() {}
 }
