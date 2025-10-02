@@ -2,8 +2,10 @@ package cn.chloeprime.commons_impl.rpc.serialization;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.fml.loading.FMLLoader;
 
 import java.lang.reflect.Array;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.IntFunction;
@@ -115,6 +117,22 @@ public interface RpcParameterSerializer<T> {
                 (buf, value) -> RpcSerializationUtils.encodeByCodec(codec, buf, value),
                 buf -> RpcSerializationUtils.decodeByCodec(codec, buf)
         );
+    }
+
+    static <E extends Enum<E>> RpcParameterSerializer<E> forEnum(Class<E> enumClass) {
+        var isTransformable = enumClass.getModule().getLayer() == FMLLoader.getGameLayer();
+        if (isTransformable) {
+            return RpcSerializers.STRING.transform(
+                    enumClass,
+                    serialized -> Enum.valueOf(enumClass, serialized),
+                    Enum::name);
+        } else {
+            var values = Objects.requireNonNull(enumClass.getEnumConstants(), "Not an enum!");
+            return RpcSerializers.INT.transform(
+                    enumClass,
+                    serialized -> values[serialized],
+                    Enum::ordinal);
+        }
     }
 
     default RpcParameterSerializer<T[]> arrayType() {
