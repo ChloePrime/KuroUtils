@@ -11,6 +11,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -24,6 +25,7 @@ import net.neoforged.neoforge.client.event.InputEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
+import java.lang.annotation.RetentionPolicy;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -69,12 +71,18 @@ public class RpcDebug implements Serializable {
     @RemoteCallable
     private static void reply2(byte[] arg4, Component text, CompoundTag randomNBT, Component text2, BlockState block) {
         KuroUtilsMod.LOGGER.info("[reply2] I'm on {}!!!, {}, {}, {}, {}", EffectiveSide.get(), text, randomNBT.getList("wawa", Tag.TAG_INT).get(1), text2, block);
-        RPC.call(RPCTarget.reply(), RpcDebug::crashy);
+        RPC.call(RPCTarget.reply(), RpcDebug::enummy, RetentionPolicy.CLASS, Rarity.UNCOMMON);
     }
 
-    @RemoteCallable(flow = RPCFlow.CLIENT_TO_SERVER)
-    public static void crashy() {
-        // This will log Wrong RPC flow with its stacktrace in the logger
+    /**
+     * Test for enum serialization.
+     *
+     * @param policy An untransformable enum.
+     * @param rarity A transformable enum.
+     */
+    @RemoteCallable
+    public static void enummy(RetentionPolicy policy, Rarity rarity) {
+        KuroUtilsMod.LOGGER.info("[enummy] {} {}!", rarity, policy);
     }
 
     private static CompoundTag randomNBT() {

@@ -46,9 +46,12 @@ public class RpcSerializationManager {
         return CLASS_TO_SERIALIZER.computeIfAbsent(argType, RpcSerializationManager::getSerializerFor0);
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private static <T> RpcParameterSerializer getSerializerFor0(Class<? extends T> argType) {
         var clazz = (Class<?>) Objects.requireNonNull(argType);
+        if (Enum.class.isAssignableFrom(clazz)) {
+            return RpcParameterSerializer.forEnum((Class) clazz);
+        }
         var setPool = INTERFACE_RESULTS_OBJECT_POOL.get();
         Set<RpcParameterSerializer<?>> interfaceResults = Objects.requireNonNullElseGet(setPool.poll(), LinkedHashSet::new);
         try {
