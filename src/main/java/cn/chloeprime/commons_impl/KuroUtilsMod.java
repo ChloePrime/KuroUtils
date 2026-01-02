@@ -19,6 +19,11 @@ public class KuroUtilsMod {
         return new ResourceLocation(MODID, path);
     }
 
+    @SuppressWarnings({"removal", "unused"})
+    public KuroUtilsMod() {
+        this(FMLJavaModLoadingContext.get());
+    }
+
     public KuroUtilsMod(FMLJavaModLoadingContext context) {
         var bus = context.getModEventBus();
         bus.register(this);
