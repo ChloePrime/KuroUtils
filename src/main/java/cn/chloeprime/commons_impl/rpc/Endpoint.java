@@ -1,10 +1,10 @@
 package cn.chloeprime.commons_impl.rpc;
 
+import cn.chloeprime.commons_impl.CommonProxy;
 import cn.chloeprime.commons_impl.network.KUNetwork;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.fml.util.thread.EffectiveSide;
 import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -64,7 +64,7 @@ public record Endpoint(
         }
         if (side.isServer()) {
             var id = Objects.requireNonNull(this.id());
-            if (ServerLifecycleHooks.getCurrentServer().overworld().getPlayerByUUID(id) instanceof ServerPlayer player) {
+            if (CommonProxy.getPlayerByUUID(id) instanceof ServerPlayer player) {
                 KUNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), packet);
             }
         }
