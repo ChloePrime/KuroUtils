@@ -1,10 +1,10 @@
 package cn.chloeprime.commons_impl.rpc;
 
+import cn.chloeprime.commons_impl.CommonProxy;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.fml.util.thread.EffectiveSide;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -64,8 +64,7 @@ public record Endpoint(
         }
         if (side.isServer()) {
             var id = Objects.requireNonNull(this.id());
-            var server = Objects.requireNonNull(ServerLifecycleHooks.getCurrentServer(), "Server is not found on the server side?");
-            if (server.overworld().getPlayerByUUID(id) instanceof ServerPlayer player) {
+            if (CommonProxy.getPlayerByUUID(id) instanceof ServerPlayer player) {
                 PacketDistributor.sendToPlayer(player, packet);
             }
         }
