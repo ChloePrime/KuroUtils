@@ -1,5 +1,6 @@
 package cn.chloeprime.commons_impl.rpc.serialization;
 
+import cn.chloeprime.commons.lang4.StringName;
 import cn.chloeprime.commons_impl.CommonProxy;
 import cn.chloeprime.commons_impl.KuroUtilsMod;
 import cn.chloeprime.commons_impl.rpc.RpcSupport;
@@ -53,6 +54,7 @@ public class RpcSerializers {
     public static final RpcParameterSerializer<Float>       FLOAT       = of(float.class, ByteBuf::writeFloat, ByteBuf::readFloat);
     public static final RpcParameterSerializer<Double>      DOUBLE      = of(double.class, ByteBuf::writeDouble, ByteBuf::readDouble);
     public static final RpcParameterSerializer<String>      STRING      = of(String.class, FriendlyByteBuf::writeUtf, FriendlyByteBuf::readUtf);
+    public static final RpcParameterSerializer<StringName>  STRING_NAME = STRING.transform(StringName.class, StringName::of, StringName::value);
     public static final RpcParameterSerializer<byte[]>      BYTES       = ofArray(byte[].class, byte[]::new, arr -> arr.length, ByteBuf::writeBytes, ByteBuf::readBytes);
     public static final RpcParameterSerializer<int[]>       INTS        = of(int[].class, FriendlyByteBuf::writeVarIntArray, FriendlyByteBuf::readVarIntArray);
     public static final RpcParameterSerializer<long[]>      LONGS       = of(long[].class, FriendlyByteBuf::writeLongArray, FriendlyByteBuf::readLongArray);
@@ -102,6 +104,7 @@ public class RpcSerializers {
         dfr.register("f", () -> FLOAT);
         dfr.register("d", () -> DOUBLE);
         dfr.register("string", () -> STRING);
+        dfr.register("string_name", () -> STRING_NAME);
         dfr.register("bytes", () -> BYTES);
         dfr.register("ints", () -> INTS);
         dfr.register("longs", () -> LONGS);
