@@ -6,7 +6,8 @@
   "refmap": "kuroutils.refmap.json",
   "mixins": [
     "ChunkMapAccessor",
-    "ChunkMapAccessor$TrackedEntity"
+    "ChunkMapAccessor$TrackedEntity",
+    "MixinDamageSource"
   ],
   "client": [
     "client.ClientLevelAccessor"
