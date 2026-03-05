@@ -82,7 +82,7 @@ public class RpcSerializers {
     /**
      * WARNING: Nullable
      */
-    public static final RpcParameterSerializer<Entity> ENTITY = INT.transform(Entity.class, CommonProxy::getEntityByID, Entity::getId);
+    public static final RpcParameterSerializer<Entity> ENTITY = INT.transform(Entity.class, CommonProxy::getEntityByID, CommonProxy::getEntityID);
 
     // Registry Entries
     public static final Map<Class<?>, RpcParameterSerializer<?>> BY_TYPE = new LinkedHashMap<>();
