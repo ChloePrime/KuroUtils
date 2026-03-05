@@ -43,6 +43,10 @@ public class CommonProxy {
         }
     }
 
+    public static int getEntityID(@Nullable Entity entity) {
+        return entity != null ? entity.getId() : 0;
+    }
+
     private static @Nullable Entity getEntityById0(MinecraftServer server, int id) {
         for (var level : server.getAllLevels()) {
             var entity = level.getEntity(id);
