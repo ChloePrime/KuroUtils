@@ -1,6 +1,6 @@
 package cn.chloeprime.commons.async;
 
-import net.minecraftforge.fml.LogicalSide;
+import net.neoforged.fml.LogicalSide;
 
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;

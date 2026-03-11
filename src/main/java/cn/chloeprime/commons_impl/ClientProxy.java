@@ -1,5 +1,6 @@
 package cn.chloeprime.commons_impl;
 
+import cn.chloeprime.commons.async.AbstractTaskScheduler;
 import cn.chloeprime.commons_impl.rpc.Endpoint;
 import cn.chloeprime.commons_impl.mixin.client.ClientLevelAccessor;
 import net.minecraft.client.Minecraft;
@@ -10,6 +11,7 @@ import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,5 +54,10 @@ public class ClientProxy {
         return Optional.ofNullable(MC.level)
                 .map(level -> level.getEntity(id))
                 .orElse(null);
+    }
+
+    @SubscribeEvent
+    private static void TaskSchedulerClientTickEvent121Fix(ClientTickEvent.Pre event) {
+        AbstractTaskScheduler.onClientTick();
     }
 }

@@ -1,10 +1,10 @@
 package cn.chloeprime.commons.async;
 
 import com.google.common.base.Preconditions;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.LogicalSide;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -18,7 +18,7 @@ import java.util.function.Consumer;
  *
  * @author zat, ChloePrime
  */
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public abstract class AbstractTaskScheduler implements TaskScheduler {
     private static long getTimeOfArrival(TaskItem item) {
         return item.timeOfArrival;
@@ -185,20 +185,15 @@ public abstract class AbstractTaskScheduler implements TaskScheduler {
     }
 
     @SubscribeEvent
-    public static void onServerTick(TickEvent.ServerTickEvent event) {
-        onTick(event, LogicalSide.SERVER);
+    public static void onServerTick(ServerTickEvent.Pre event) {
+        onTick(LogicalSide.SERVER);
     }
 
-    @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        onTick(event, LogicalSide.CLIENT);
+    public static void onClientTick() {
+        onTick(LogicalSide.CLIENT);
     }
 
-    private static void onTick(TickEvent event, LogicalSide currentSide) {
-        if (event.phase == TickEvent.Phase.END) {
-            return;
-        }
-
+    private static void onTick(LogicalSide currentSide) {
         Iterator<WeakReference<AbstractTaskScheduler>> ite = getInstancesForSide(currentSide).iterator();
 
         markTicking(currentSide, true);
