@@ -1,19 +1,14 @@
 package cn.chloeprime.commons.async;
 
+import net.minecraftforge.fml.LogicalSide;
+
 /**
  * Task impl based on game ticks / manual update.
  * @author ChloePrime
  */
 public class TickBasedTaskScheduler extends AbstractTaskScheduler {
-    /**
-     * autoUpdate = true
-     */
-    public TickBasedTaskScheduler() {
-        super();
-    }
-
-    public TickBasedTaskScheduler(boolean autoUpdate) {
-        super(autoUpdate);
+    public TickBasedTaskScheduler(boolean autoUpdate, LogicalSide side) {
+        super(autoUpdate, side);
     }
 
     private long ticks = 0L;

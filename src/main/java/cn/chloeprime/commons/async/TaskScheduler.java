@@ -1,5 +1,7 @@
 package cn.chloeprime.commons.async;
 
+import net.minecraftforge.fml.LogicalSide;
+
 import javax.annotation.Nonnull;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -20,28 +22,33 @@ public interface TaskScheduler {
      *
      * @return a task scheduler that is based on game tick.
      */
-    static TaskScheduler createTickBased() {
-        return new TickBasedTaskScheduler();
+    static TaskScheduler createTickBased(LogicalSide tickSide) {
+        return new TickBasedTaskScheduler(true, tickSide);
     }
 
     /**
      * Create a task scheduler that is based on real time.
      * The time unit of the returned scheduler is **milliseconds**.
+     * <p>
+     * The task is scheduled to the given event loop (client or server tick)
+     * after the given real time delay.
      *
+     * @param eventLoopSide The side used to get the event loop.
      * @return a task scheduler that is based on game tick.
      */
-    static TaskScheduler createRealTimeBased() {
-        return new RealTimeTaskScheduler();
+    static TaskScheduler createRealTimeBased(LogicalSide eventLoopSide) {
+        return new RealTimeTaskScheduler(eventLoopSide);
     }
 
     /**
-     * Create a task scheduler that is based on manual update calls.
+     * Create a task scheduler that is based on explicit calls to {@link #update()}.
      * The time unit of the returned scheduler is call times to {@link #update()}.
      *
      * @return a task scheduler that is based on game tick.
      */
     static TaskScheduler createManuallyUpdated() {
-        return new TickBasedTaskScheduler(false);
+        // Side does matter when autoUpdate is false
+        return new TickBasedTaskScheduler(false, LogicalSide.SERVER);
     }
 
     // Regular Scheduling APIs

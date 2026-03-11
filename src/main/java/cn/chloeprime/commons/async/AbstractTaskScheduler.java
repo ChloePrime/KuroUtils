@@ -5,7 +5,6 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.util.thread.EffectiveSide;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,14 +32,9 @@ public abstract class AbstractTaskScheduler implements TaskScheduler {
             Comparator.comparingLong(AbstractTaskScheduler::getTimeOfArrival)
     );
 
-    @SuppressWarnings("unused")
-    public AbstractTaskScheduler() {
-        this(true);
-    }
-
-    public AbstractTaskScheduler(boolean autoUpdate) {
+    public AbstractTaskScheduler(boolean autoUpdate, LogicalSide side) {
         this.autoUpdate = autoUpdate;
-        this.logicSide = EffectiveSide.get();
+        this.logicSide = side;
 
         if (!this.autoUpdate) {
             return;
