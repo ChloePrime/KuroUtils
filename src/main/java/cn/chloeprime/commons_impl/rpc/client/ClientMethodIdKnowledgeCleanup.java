@@ -10,6 +10,6 @@ import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 public class ClientMethodIdKnowledgeCleanup {
     @SubscribeEvent
     public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut event) {
-        MethodKnowledgeDatabase.onClientLogout();
+        MethodKnowledgeDatabase.clearForClient();
     }
 }

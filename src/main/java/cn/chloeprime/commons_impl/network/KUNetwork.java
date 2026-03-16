@@ -1,5 +1,6 @@
 package cn.chloeprime.commons_impl.network;
 
+import cn.chloeprime.commons_impl.rpc.packet.RpcClearClientKnowledgePacket;
 import cn.chloeprime.commons_impl.rpc.packet.RpcMethodAcknowledgmentPacket;
 import cn.chloeprime.commons_impl.rpc.packet.RpcCallMethodPacket;
 import net.minecraft.network.codec.StreamCodec;
@@ -26,8 +27,12 @@ public class KUNetwork {
         registrar.executesOn(HandlerThread.NETWORK).playBidirectional(
                 RpcMethodAcknowledgmentPacket.TYPE,
                 RpcMethodAcknowledgmentPacket.STREAM_CODEC,
-                RpcMethodAcknowledgmentPacket::handle
-        );
+                RpcMethodAcknowledgmentPacket::handle);
+
+        registrar.executesOn(HandlerThread.NETWORK).playToClient(
+                RpcClearClientKnowledgePacket.TYPE,
+                RpcClearClientKnowledgePacket.STREAM_CODEC,
+                RpcClearClientKnowledgePacket::handle);
     }
 
     private KUNetwork() {
