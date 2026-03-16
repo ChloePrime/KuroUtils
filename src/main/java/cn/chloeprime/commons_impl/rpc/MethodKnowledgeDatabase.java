@@ -1,5 +1,7 @@
 package cn.chloeprime.commons_impl.rpc;
 
+import cn.chloeprime.commons_impl.network.KUNetwork;
+import cn.chloeprime.commons_impl.rpc.packet.RpcClearClientKnowledgePacket;
 import cn.chloeprime.commons_impl.rpc.packet.RpcMethodAcknowledgmentPacket;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -7,9 +9,11 @@ import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.PacketDistributor;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -118,26 +122,36 @@ public record MethodKnowledgeDatabase(
         LOCAL_BAD_METHOD_IDS.defaultReturnValue(-1);
     }
 
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @ApiStatus.Internal
+    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        // 登录时再清空一次知识库，
+        // 这样就可以支持群组服了。
+        // （在客户端看来切换群组服只是换了世界而没有退服，所以需要从服务端重置知识库）
+        if (event.getEntity() instanceof ServerPlayer player) {
+            clearKnowledgeFor(Endpoint.forPlayer(player));
+            KUNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new RpcClearClientKnowledgePacket());
+        }
+    }
+
     @SubscribeEvent
     @ApiStatus.Internal
     public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            var endpoint = Endpoint.forPlayer(player);
-            synchronized (LOCAL) {
-                synchronized (REMOTE) {
-                    LOCAL.remove(endpoint);
-                    REMOTE.remove(endpoint);
-                }
-            }
+            clearKnowledgeFor(Endpoint.forPlayer(player));
         }
     }
 
     @ApiStatus.Internal
-    public static void onClientLogout() {
-        synchronized (MethodKnowledgeDatabase.LOCAL) {
-            synchronized (MethodKnowledgeDatabase.REMOTE) {
-                MethodKnowledgeDatabase.LOCAL.remove(Endpoint.SERVER);
-                MethodKnowledgeDatabase.REMOTE.remove(Endpoint.SERVER);
+    public static void clearForClient() {
+        clearKnowledgeFor(Endpoint.SERVER);
+    }
+
+    private static void clearKnowledgeFor(Endpoint endpoint) {
+        synchronized (LOCAL) {
+            synchronized (REMOTE) {
+                LOCAL.remove(endpoint);
+                REMOTE.remove(endpoint);
             }
         }
     }

@@ -10,6 +10,6 @@ import net.minecraftforge.fml.common.Mod;
 public class ClientMethodIdKnowledgeCleanup {
     @SubscribeEvent
     public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut event) {
-        MethodKnowledgeDatabase.onClientLogout();
+        MethodKnowledgeDatabase.clearForClient();
     }
 }

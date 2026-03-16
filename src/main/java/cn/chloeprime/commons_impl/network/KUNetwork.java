@@ -1,6 +1,7 @@
 package cn.chloeprime.commons_impl.network;
 
 import cn.chloeprime.commons_impl.KuroUtilsMod;
+import cn.chloeprime.commons_impl.rpc.packet.RpcClearClientKnowledgePacket;
 import cn.chloeprime.commons_impl.rpc.packet.RpcMethodAcknowledgmentPacket;
 import cn.chloeprime.commons_impl.rpc.packet.RpcCallMethodPacket;
 import net.minecraftforge.network.NetworkRegistry;
@@ -18,6 +19,7 @@ public class KUNetwork {
         int id = -1;
         CHANNEL.registerMessage(++id, RpcCallMethodPacket.class, RpcCallMethodPacket::encode, RpcCallMethodPacket::decode, RpcCallMethodPacket::handle);
         CHANNEL.registerMessage(++id, RpcMethodAcknowledgmentPacket.class, RpcMethodAcknowledgmentPacket::encode, RpcMethodAcknowledgmentPacket::decode, RpcMethodAcknowledgmentPacket::handle);
+        CHANNEL.registerMessage(++id, RpcClearClientKnowledgePacket.class, RpcClearClientKnowledgePacket::encode, RpcClearClientKnowledgePacket::decode, RpcClearClientKnowledgePacket::handle);
     }
 
     private KUNetwork() {
