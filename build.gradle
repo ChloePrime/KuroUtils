@@ -21,6 +21,7 @@ apply plugin: 'org.spongepowered.mixin'
 group = mod_group_id
 def artifact_name = mod_id + "2"
 version = mod_version
+def isRelease = !version.contains('alpha')
 
 base {
     archivesName = mod_id
@@ -235,17 +236,12 @@ tasks.withType(GenerateModuleMetadata) {
 }
 publishing {
     repositories {
-        boolean has_chloe_maven
-        try {
-            "$CHLOE_MAVEN_PASSWORD"
-            has_chloe_maven = true
-        } catch (Exception ignored) {
-            has_chloe_maven = false
-        }
-        if (has_chloe_maven) {
+        if (project.hasProperty("CHLOE_MAVEN_USERNAME")) {
             maven {
                 name = "Chloe_Maven"
-                url = "https://maven.chloeprime.cn:4080/releases/"
+                url = isRelease
+                        ? "https://maven.chloeprime.cn:4080/releases/"
+                        : "https://maven.chloeprime.cn:4080/snapshots/"
                 credentials {
                     username "$CHLOE_MAVEN_USERNAME"
                     password "$CHLOE_MAVEN_PASSWORD"
