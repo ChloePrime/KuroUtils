@@ -35,7 +35,9 @@ public class ClientProxy {
     }
 
     public static @NotNull Endpoint getLocalEndpoint() {
-        return new Endpoint(MC.getUser().getProfileId());
+        var player = Minecraft.getInstance().player;
+        var uid = player != null ? player.getUUID() : MC.getUser().getProfileId();
+        return new Endpoint(uid);
     }
 
     public static @Nullable Entity getEntityByUUID(UUID uuid) {
