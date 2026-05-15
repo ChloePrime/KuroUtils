@@ -17,7 +17,7 @@ public class KUNetwork {
 
     @SubscribeEvent
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
-        final PayloadRegistrar registrar = event.registrar(String.valueOf(1));
+        final PayloadRegistrar registrar = event.registrar("2.5.0");
 
         registrar.playBidirectional(
                 RpcCallMethodPacket.TYPE,
