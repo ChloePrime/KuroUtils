@@ -154,11 +154,21 @@ public class RpcSerializers {
         for (Registry registry : BuiltInRegistries.REGISTRY) {
             var type = (Class) RpcSerializationUtils.findCommonParentClasses(registry);
             if (type == null && registry instanceof DefaultedRegistry<?> defaulted) {
-                var typeOfDefault = defaulted.get((ResourceLocation) null).getClass();
-                type = RpcSerializationUtils.findCommonParentClasses(List.of(typeOfDefault));
+                Object Default;
+                try {
+                    Default = defaulted.get((ResourceLocation) null);
+                    // Check non-null or throw NPE
+                    // noinspection ResultOfMethodCallIgnored
+                    Default.hashCode();
+                } catch (NullPointerException ex) {
+                    RpcSupport.LOGGER.warn("Registry {} has a null default value", registry.key().location());
+                    continue;
+                }
+                type = RpcSerializationUtils.findCommonParentClasses(List.of(Default.getClass()));
             }
             if (type == null) {
                 RpcSupport.LOGGER.warn("RPC Serializer for registry {} is null", registry.key().location());
+                continue;
             } else {
                 RpcSupport.LOGGER.info("RPC Serializer for registry {} is {}", registry.key().location(), type.getCanonicalName());
             }
